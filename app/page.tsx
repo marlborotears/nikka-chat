@@ -17,27 +17,30 @@ export default function Chat() {
   const [carregando, setCarregando] = useState(false);
   const [sidebarAberta, setSidebarAberta] = useState(false);
   const [alturaApp, setAlturaApp] = useState<number | null>(null);
+  const [topoApp, setTopoApp] = useState<number>(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const carregou = useRef(false);
 
-  // --- Corrige altura real quando o teclado do iOS abre/fecha ---
+  // --- Corrige altura e deslocamento reais quando o teclado do iOS abre/fecha ---
   useEffect(() => {
-    function ajustarAltura() {
+    function ajustar() {
       const vv = window.visualViewport;
       if (vv) {
         setAlturaApp(vv.height);
+        setTopoApp(vv.offsetTop);
       }
     }
-    ajustarAltura();
-    window.visualViewport?.addEventListener("resize", ajustarAltura);
-    window.visualViewport?.addEventListener("scroll", ajustarAltura);
+    ajustar();
+    window.visualViewport?.addEventListener("resize", ajustar);
+    window.visualViewport?.addEventListener("scroll", ajustar);
     return () => {
-      window.visualViewport?.removeEventListener("resize", ajustarAltura);
-      window.visualViewport?.removeEventListener("scroll", ajustarAltura);
+      window.visualViewport?.removeEventListener("resize", ajustar);
+      window.visualViewport?.removeEventListener("scroll", ajustar);
     };
   }, []);
 
+  // --- Carrega conversas salvas ao abrir o site ---
   useEffect(() => {
     const salvo = localStorage.getItem(STORAGE_KEY);
     if (salvo) {
@@ -53,12 +56,14 @@ export default function Chat() {
     carregou.current = true;
   }, []);
 
+  // --- Salva conversas sempre que mudar ---
   useEffect(() => {
     if (carregou.current) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(conversas));
     }
   }, [conversas]);
 
+  // --- Scroll automático pra última mensagem ---
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [conversas, carregando, ativaId, alturaApp]);
@@ -95,7 +100,6 @@ export default function Chat() {
   }
 
   function aoFocarInput() {
-    // Dá um tempinho pro teclado terminar de abrir antes de rolar
     setTimeout(() => {
       scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     }, 300);
@@ -145,6 +149,7 @@ export default function Chat() {
       style={{
         ...estilos.appWrapper,
         height: alturaApp ? `${alturaApp}px` : "100dvh",
+        top: topoApp,
       }}
     >
       {sidebarAberta && <div style={estilos.overlay} onClick={() => setSidebarAberta(false)} />}
@@ -234,14 +239,12 @@ export default function Chat() {
 const estilos: { [k: string]: React.CSSProperties } = {
   appWrapper: {
     position: "fixed",
-    top: 0,
     left: 0,
     right: 0,
     maxWidth: 600,
     margin: "0 auto",
     overflow: "hidden",
     backgroundColor: "#0d0d0d",
-    transition: "height 0.1s ease",
   },
   overlay: { position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 10 },
   sidebar: {
@@ -280,7 +283,10 @@ const estilos: { [k: string]: React.CSSProperties } = {
   headerTitulo: { fontSize: 16, fontWeight: 600 },
   headerStatus: { fontSize: 11, color: "#9b6fae" },
   menuBtn: { fontSize: 20, width: 32, textAlign: "center", cursor: "pointer" },
-  chatArea: { flex: 1, minHeight: 0, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 8 },
+  chatArea: {
+    flex: 1, minHeight: 0, overflowY: "auto", padding: "16px",
+    display: "flex", flexDirection: "column", gap: 8,
+  },
   empty: { textAlign: "center", color: "#777", marginTop: 40 },
   bubbleWrapper: { display: "flex", width: "100%" },
   bubble: {
