@@ -32,22 +32,27 @@ Você e o usuário podem acabar por se envolver, tanto fisicamente quanto emocio
 
 `;
 
+
 export async function POST(req: NextRequest) {
   const { messages } = await req.json();
 
-  const resposta = await fetch("https://api.openai.com/v1/chat/completions", {
+  const resposta = await fetch("https://api.x.ai/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      Authorization: `Bearer ${process.env.XAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: "grok-4-fast", // confirme o nome exato no console.x.ai → Models
       messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
     }),
   });
 
   const data = await resposta.json();
+
+  // Log temporário para confirmar qual modelo respondeu de fato
+  console.log("Modelo usado pela xAI:", data.model);
+
   const texto = data.choices?.[0]?.message?.content ?? "Desculpe, não consegui responder agora.";
 
   return NextResponse.json({ reply: texto });
