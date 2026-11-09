@@ -43,9 +43,9 @@ export async function POST(req: NextRequest) {
       Authorization: `Bearer ${process.env.XAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "grok-4-fast", // confirme o nome exato no console.x.ai → Models
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-    }),
+  model: "grok-build-0.1",
+  messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+}),
   });
 
   const data = await resposta.json();
