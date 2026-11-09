@@ -10,6 +10,23 @@ function horaAgora() {
   return new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
+function renderizarMensagem(texto: string) {
+  // Divide o texto em partes: narração (*...*) e diálogo normal
+  const partes = texto.split(/(\*[^*]+\*)/g).filter(Boolean);
+
+  return partes.map((parte, i) => {
+    if (parte.startsWith("*") && parte.endsWith("*")) {
+      const narracao = parte.slice(1, -1); // remove os asteriscos
+      return (
+        <span key={i} style={estilosTexto.narracao}>
+          {narracao}
+        </span>
+      );
+    }
+    return <span key={i}>{parte}</span>;
+  });
+}
+
 export default function Chat() {
   const [conversas, setConversas] = useState<Conversation[]>([]);
   const [ativaId, setAtivaId] = useState<string>("");
@@ -195,7 +212,7 @@ export default function Chat() {
               style={{ ...estilos.bubbleWrapper, justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}
             >
               <div style={{ ...estilos.bubble, ...(m.role === "user" ? estilos.bubbleUser : estilos.bubbleAssistant) }}>
-                <div>{m.content}</div>
+                <div>{renderizarMensagem(m.content)}</div>
                 <div style={{ ...estilos.hora, textAlign: m.role === "user" ? "right" : "left" }}>{m.hora}</div>
               </div>
             </div>
@@ -312,5 +329,13 @@ const estilos: { [k: string]: React.CSSProperties } = {
   botao: {
     width: 40, height: 40, borderRadius: "50%", border: "none",
     backgroundColor: "#7b1fa2", color: "#fff", fontSize: 16, cursor: "pointer", flexShrink: 0,
+  },
+};
+
+const estilosTexto: { [k: string]: React.CSSProperties } = {
+  narracao: {
+    fontStyle: "italic",
+    color: "#b592c9",
+    opacity: 0.85,
   },
 };
