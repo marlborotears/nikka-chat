@@ -16,9 +16,27 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [sidebarAberta, setSidebarAberta] = useState(false);
+  const [alturaApp, setAlturaApp] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const carregou = useRef(false);
+
+  // --- Corrige altura real quando o teclado do iOS abre/fecha ---
+  useEffect(() => {
+    function ajustarAltura() {
+      const vv = window.visualViewport;
+      if (vv) {
+        setAlturaApp(vv.height);
+      }
+    }
+    ajustarAltura();
+    window.visualViewport?.addEventListener("resize", ajustarAltura);
+    window.visualViewport?.addEventListener("scroll", ajustarAltura);
+    return () => {
+      window.visualViewport?.removeEventListener("resize", ajustarAltura);
+      window.visualViewport?.removeEventListener("scroll", ajustarAltura);
+    };
+  }, []);
 
   useEffect(() => {
     const salvo = localStorage.getItem(STORAGE_KEY);
@@ -42,8 +60,8 @@ export default function Chat() {
   }, [conversas]);
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [conversas, carregando, ativaId]);
+    scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [conversas, carregando, ativaId, alturaApp]);
 
   function criarNovaConversa() {
     const nova: Conversation = { id: crypto.randomUUID(), title: "Nova conversa", messages: [] };
@@ -74,6 +92,13 @@ export default function Chat() {
       el.style.height = "auto";
       el.style.height = Math.min(el.scrollHeight, 120) + "px";
     }
+  }
+
+  function aoFocarInput() {
+    // Dá um tempinho pro teclado terminar de abrir antes de rolar
+    setTimeout(() => {
+      scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 300);
   }
 
   async function enviar() {
@@ -116,7 +141,12 @@ export default function Chat() {
   }
 
   return (
-    <div style={estilos.appWrapper}>
+    <div
+      style={{
+        ...estilos.appWrapper,
+        height: alturaApp ? `${alturaApp}px` : "100dvh",
+      }}
+    >
       {sidebarAberta && <div style={estilos.overlay} onClick={() => setSidebarAberta(false)} />}
 
       <div style={{ ...estilos.sidebar, transform: sidebarAberta ? "translateX(0)" : "translateX(-100%)" }}>
@@ -136,17 +166,17 @@ export default function Chat() {
       </div>
 
       <div style={estilos.container}>
-<header style={estilos.header}>
-  <div style={estilos.headerEsquerda}>
-    <span style={estilos.menuBtn} onClick={() => setSidebarAberta(true)}>☰</span>
-    <div style={estilos.avatar}>🖤</div>
-    <div>
-      <div style={estilos.headerTitulo}>Nikka</div>
-      <div style={estilos.headerStatus}>{carregando ? "digitando..." : "online"}</div>
-    </div>
-  </div>
-  <span style={estilos.menuBtn} onClick={criarNovaConversa}>＋</span>
-</header>
+        <header style={estilos.header}>
+          <div style={estilos.headerEsquerda}>
+            <span style={estilos.menuBtn} onClick={() => setSidebarAberta(true)}>☰</span>
+            <div style={estilos.avatar}>🖤</div>
+            <div>
+              <div style={estilos.headerTitulo}>Nikka</div>
+              <div style={estilos.headerStatus}>{carregando ? "digitando..." : "online"}</div>
+            </div>
+          </div>
+          <span style={estilos.menuBtn} onClick={criarNovaConversa}>＋</span>
+        </header>
 
         <div style={estilos.chatArea}>
           {(!conversaAtiva || conversaAtiva.messages.length === 0) && (
@@ -184,6 +214,7 @@ export default function Chat() {
             style={estilos.input}
             value={input}
             rows={1}
+            onFocus={aoFocarInput}
             onChange={(e) => { setInput(e.target.value); ajustarAlturaTextarea(); }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -202,12 +233,15 @@ export default function Chat() {
 
 const estilos: { [k: string]: React.CSSProperties } = {
   appWrapper: {
-    position: "relative",
-    height: "100dvh",
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
     maxWidth: 600,
     margin: "0 auto",
     overflow: "hidden",
     backgroundColor: "#0d0d0d",
+    transition: "height 0.1s ease",
   },
   overlay: { position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 10 },
   sidebar: {
@@ -236,8 +270,9 @@ const estilos: { [k: string]: React.CSSProperties } = {
     display: "flex", alignItems: "center", justifyContent: "space-between",
     padding: "10px 14px", paddingTop: "calc(10px + env(safe-area-inset-top))",
     borderBottom: "1px solid #330011", backgroundColor: "#141414",
+    flexShrink: 0,
   },
- headerEsquerda: { display: "flex", alignItems: "center", gap: 10 },
+  headerEsquerda: { display: "flex", alignItems: "center", gap: 10 },
   avatar: {
     width: 36, height: 36, borderRadius: "50%", backgroundColor: "#2a0a3a",
     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16,
@@ -245,7 +280,7 @@ const estilos: { [k: string]: React.CSSProperties } = {
   headerTitulo: { fontSize: 16, fontWeight: 600 },
   headerStatus: { fontSize: 11, color: "#9b6fae" },
   menuBtn: { fontSize: 20, width: 32, textAlign: "center", cursor: "pointer" },
-  chatArea: { flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 8 },
+  chatArea: { flex: 1, minHeight: 0, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 8 },
   empty: { textAlign: "center", color: "#777", marginTop: 40 },
   bubbleWrapper: { display: "flex", width: "100%" },
   bubble: {
@@ -261,6 +296,7 @@ const estilos: { [k: string]: React.CSSProperties } = {
     display: "flex", alignItems: "flex-end", gap: 8, padding: "10px 14px",
     paddingBottom: "calc(10px + env(safe-area-inset-bottom))",
     borderTop: "1px solid #330011", backgroundColor: "#141414",
+    flexShrink: 0,
   },
   input: {
     flex: 1, padding: "10px 16px", borderRadius: 20, border: "1px solid #330011",

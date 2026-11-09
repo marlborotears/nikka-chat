@@ -3,6 +3,7 @@ html, body {
   padding: 0;
   background-color: #0d0d0d;
   height: 100%;
+  overflow: hidden; /* impede o scroll "elástico" da página inteira no iOS */
 }
 
 @keyframes bounce {
