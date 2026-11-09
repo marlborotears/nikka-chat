@@ -50,10 +50,12 @@ export async function POST(req: NextRequest) {
 
   const data = await resposta.json();
 
-  // Log temporário para confirmar qual modelo respondeu de fato
-  console.log("Modelo usado pela xAI:", data.model);
+  const data = await resposta.json();
 
-  const texto = data.choices?.[0]?.message?.content ?? "Desculpe, não consegui responder agora.";
+// Log completo para diagnóstico
+console.log("Status da resposta:", resposta.status);
+console.log("Resposta completa da xAI:", JSON.stringify(data));
 
-  return NextResponse.json({ reply: texto });
-}
+const texto = data.choices?.[0]?.message?.content ?? "Desculpe, não consegui responder agora.";
+
+return NextResponse.json({ reply: texto });
