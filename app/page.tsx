@@ -136,17 +136,17 @@ export default function Chat() {
       </div>
 
       <div style={estilos.container}>
-        <header style={estilos.header}>
-          <span style={estilos.menuBtn} onClick={() => setSidebarAberta(true)}>☰</span>
-          <div style={estilos.headerCentro}>
-            <div style={estilos.avatar}>🖤</div>
-            <div>
-              <div style={estilos.headerTitulo}>Nikka</div>
-              <div style={estilos.headerStatus}>{carregando ? "digitando..." : "online"}</div>
-            </div>
-          </div>
-          <span style={estilos.menuBtn} onClick={criarNovaConversa}>＋</span>
-        </header>
+<header style={estilos.header}>
+  <div style={estilos.headerEsquerda}>
+    <span style={estilos.menuBtn} onClick={() => setSidebarAberta(true)}>☰</span>
+    <div style={estilos.avatar}>🖤</div>
+    <div>
+      <div style={estilos.headerTitulo}>Nikka</div>
+      <div style={estilos.headerStatus}>{carregando ? "digitando..." : "online"}</div>
+    </div>
+  </div>
+  <span style={estilos.menuBtn} onClick={criarNovaConversa}>＋</span>
+</header>
 
         <div style={estilos.chatArea}>
           {(!conversaAtiva || conversaAtiva.messages.length === 0) && (
@@ -237,7 +237,7 @@ const estilos: { [k: string]: React.CSSProperties } = {
     padding: "10px 14px", paddingTop: "calc(10px + env(safe-area-inset-top))",
     borderBottom: "1px solid #330011", backgroundColor: "#141414",
   },
-  headerCentro: { display: "flex", alignItems: "center", gap: 10 },
+ headerEsquerda: { display: "flex", alignItems: "center", gap: 10 },
   avatar: {
     width: 36, height: 36, borderRadius: "50%", backgroundColor: "#2a0a3a",
     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16,
