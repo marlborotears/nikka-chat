@@ -52,10 +52,11 @@ export async function POST(req: NextRequest) {
 
   const data = await resposta.json();
 
-// Log completo para diagnóstico
-console.log("Status da resposta:", resposta.status);
-console.log("Resposta completa da xAI:", JSON.stringify(data));
+// Log detalhado para diagnóstico
+  console.log("Status da resposta:", resposta.status);
+  console.log("Resposta completa da xAI:", JSON.stringify(data));
 
-const texto = data.choices?.[0]?.message?.content ?? "Desculpe, não consegui responder agora.";
+  const texto = data.choices?.[0]?.message?.content ?? "Desculpe, não consegui responder agora.";
 
-return NextResponse.json({ reply: texto });
+  return NextResponse.json({ reply: texto });
+}
